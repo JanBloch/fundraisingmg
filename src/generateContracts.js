@@ -9,7 +9,7 @@ export const generateContracts = (esVertragTemplate, verleihvertragTemplate, dat
     const verleihFolder = zip.folder("verleihvertraege");
     data.forEach(entry => {
         console.log(entry.esb);
-        const sd = (stammdaten.filter(v => v['Wo?'] == entry.esb) ?? [])[0];
+        const sd = (stammdaten.filter(v => v['Wo'] == entry.esb) ?? [])[0];
         const concatName = entry.name + "-" + entry.esb.replace(/[^a-zA-Z0.9]/g, "") + ".docx";
         esFolder.file("einsatzvertrag-" + concatName, generateVertrag(esVertragTemplate, entry, sd));
         verleihFolder.file("verleihvertrag-" + concatName, generateVertrag(verleihvertragTemplate, entry, sd));
@@ -22,7 +22,7 @@ export const generateContracts = (esVertragTemplate, verleihvertragTemplate, dat
 const generateVertrag = (template, data, stammdaten) => {
     return createReport({
         template,
-        data: { esb_name: data.esb },
+        data: { from: data.from, to: data.to, esb: data.esb, name: data.name, ...stammdaten },
         cmdDelimiter: ["{", "}"]
     })
 };

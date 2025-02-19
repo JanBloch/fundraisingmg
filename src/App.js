@@ -80,12 +80,16 @@ function App() {
     const content = await readFile(file);
     setVerleihvertragTemplate(content);
   };
-  const kunden = stammdaten.map((v) => v["Wo?"]);
+  const kunden = stammdaten.map((v) => v["Wo"]);
   const createEinsatzplan = () => {
     setEinsatzPlan(getEinsatzPlan(startDate, maData));
   };
   const e_generateContracts = () => {
-    generateContracts(einsatzvertragTemplate, verleihvertragTemplate, einsatzPlan, stammdaten);
+    try {
+      generateContracts(einsatzvertragTemplate, verleihvertragTemplate, einsatzPlan, stammdaten);
+    } catch (ex) {
+      alert(ex);
+    }
   };
   console.log(kunden);
   //<ListEntry list={kunden} addToList={addKunde}></ListEntry>
