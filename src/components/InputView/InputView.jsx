@@ -1,5 +1,5 @@
 import React from "react";
-import { SearchableDropdown } from "./SearchableDropdown";
+import { SearchableDropdown } from "../../SearchableDropdown";
 import { useState } from "react";
 import "./InputView.css";
 

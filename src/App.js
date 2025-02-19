@@ -1,12 +1,14 @@
 import "./App.css";
-import { SearchableDropdown } from "./SearchableDropdown";
 import { useState } from "react";
-import { InputView } from "./InputView";
+import { InputView } from "./components/InputView/InputView";
 import { ListEntry } from "./ListEntry";
 import { LinkButton } from "./components/LinkButton/LinkButton";
-import { Button } from "./components/Button/Button";
 import { csvToArray } from "./csvToArray";
 import { DatePicker } from "./components/DatePicker/DatePicker";
+import { Box } from "./components/Box/Box";
+import { Button } from './components/Button/Button';
+import { getEinsatzPlan } from "./components/InputView/getEinsatzPlan";
+import { generateContracts } from "./generateContracts";
 
 function App() {
   const dayCount = 5;
@@ -14,6 +16,9 @@ function App() {
   //const [kunden, setKunden] = useState([]);
   const [stammdaten, setStammdaten] = useState([]);
   const [startDate, setStartDate] = useState();
+  const [einsatzPlan, setEinsatzPlan] = useState(null);
+  const [einsatzvertragTemplate, setEinsatzvertragTemplate] = useState(null);
+  const [verleihvertragTemplate, setVerleihvertragTemplate] = useState(null);
   /*const setKunde = (index, value) => {
     const newList = [...kunden];
     newList[index] = value;
@@ -42,40 +47,85 @@ function App() {
     JSON.stringify(maData)
   )}`;
   const uploadStammdaten = (file) => {
+    readFileAsText(file).then(result => {
+      const arr = csvToArray(result);
+      setStammdaten(arr);
+    })
+  };
+  const readFileAsText = async (file) => {
     if (!file) return;
     var reader = new FileReader();
     reader.readAsText(file, "UTF-8");
-    reader.onload = function (evt) {
-      //console.log(evt.target.result);
-      const arr = csvToArray(evt.target.result);
-      //console.log(arr);
-      setStammdaten(arr);
-      //document.getElementById("fileContents").innerHTML = evt.target.result;
-    };
+    return new Promise((resolve) => {
+      reader.onload = function (evt) {
+        resolve(evt.target.result);
+      };
+    })
+  }
+  const readFile = async (file) => {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+    return new Promise((resolve) => {
+      reader.onload = function (evt) {
+        resolve(evt.target.result);
+      };
+    })
+  }
+  const uploadEinsatzvertragTemplate = async (file) => {
+    const content = await readFile(file);
+    setEinsatzvertragTemplate(content);
+  };
+  const uploadVerleihvertragTemplate = async (file) => {
+    const content = await readFile(file);
+    setVerleihvertragTemplate(content);
   };
   const kunden = stammdaten.map((v) => v["Wo?"]);
+  const createEinsatzplan = () => {
+    setEinsatzPlan(getEinsatzPlan(startDate, maData));
+  };
+  const e_generateContracts = () => {
+    generateContracts(einsatzvertragTemplate, verleihvertragTemplate, einsatzPlan, stammdaten);
+  };
   console.log(kunden);
   //<ListEntry list={kunden} addToList={addKunde}></ListEntry>
   return (
     <div>
       <div className="grid-parent customerlist">
         <div>
-          <div>
+          <Box>
             <LinkButton
               href={downloadString}
               download="output.json"
               text="Download JSON"
             />
-          </div>
-          <div>
+          </Box>
+          <Box>
             <input
               type="file"
               onChange={(e) => uploadStammdaten(e.target.files[0])}
             />
-          </div>
-          <div>
-            <DatePicker value={startDate} setValue={setStartDate} />
-          </div>
+          </Box>
+          <Box>
+            <div>
+              <span className="label">Startdatum</span>
+              <DatePicker value={startDate} setValue={setStartDate} />
+            </div>
+            <Button label="Einsatzplan generieren" onClick={createEinsatzplan} />
+          </Box>
+          <Box>
+            <div>
+              <span className="label">Einsatzvertrag Vorlage</span>
+              <input type="file" onChange={(e) => uploadEinsatzvertragTemplate(e.target.files[0])}></input>
+            </div>
+            <div>
+              <span className="label">Verleihvertrag Vorlage</span>
+              <input type="file" onChange={(e) => uploadVerleihvertragTemplate(e.target.files[0])}></input>
+            </div>
+          </Box>
+          <Box>
+            <Button label="Verträge generieren" onClick={e_generateContracts} />
+          </Box>
         </div>
         <ListEntry
           list={Object.keys(maData)}
@@ -95,6 +145,7 @@ function App() {
             setMaData(obj);
           }}
         />
+        <div style={{ height: 120 }}></div>
       </div>
     </div>
   );
